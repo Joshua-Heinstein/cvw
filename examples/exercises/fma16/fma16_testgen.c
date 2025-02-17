@@ -19,16 +19,16 @@ uint16_t easyExponents[] = {15, 0x8000};
 uint16_t easyFracts[] = {0, 0x200, 0x8000}; // 1.0 and 1.1
 
 uint16_t fmul1Exponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
-uint16_t fmul1Fracts[] = {1023, 700, 512, 2, 1, 0x8000};
+uint16_t fmul1Fracts[] = {1022, 700, 512, 2, 1, 0x8000};
 
 uint16_t fmul2Exponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
-uint16_t fmul2Fracts[] = {1023, 700, 512, 2, 1, 0x8000};
+uint16_t fmul2Fracts[] = {1022, 700, 512, 2, 1, 0x8000};
 
 uint16_t faddExponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
-uint16_t faddFracts[] = {1023, 700, 512, 2, 1, 0x8000};
+uint16_t faddFracts[] = {1022, 700, 512, 2, 1, 0x8000};
 
 uint16_t fspecialExponents[] = {31, 30, 16, 14, 1, 0, 0x8000};
-uint16_t fspecialFracts[] = {1024, 1023, 512, 1, 0, 0x8000};
+uint16_t fspecialFracts[] = {1023, 1023, 512, 1, 0, 0x8000};
 
 void softfloatInit(void) {
     softfloat_roundingMode = softfloat_round_minMag; 

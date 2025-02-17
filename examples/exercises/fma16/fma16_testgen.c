@@ -18,6 +18,18 @@ typedef union sp {
 uint16_t easyExponents[] = {15, 0x8000};
 uint16_t easyFracts[] = {0, 0x200, 0x8000}; // 1.0 and 1.1
 
+uint16_t fmul1Exponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
+uint16_t fmul1Fracts[] = {1023, 700, 512, 2, 1, 0x8000};
+
+uint16_t fmul2Exponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
+uint16_t fmul2Fracts[] = {1023, 700, 512, 2, 1, 0x8000};
+
+uint16_t faddExponents[] = {30, 20, 16, 14, 6, 1, 0x8000};
+uint16_t faddFracts[] = {1023, 700, 512, 2, 1, 0x8000};
+
+uint16_t fspecialExponents[] = {31, 30, 16, 14, 1, 0, 0x8000};
+uint16_t fspecialFracts[] = {1024, 1023, 512, 1, 0, 0x8000};
+
 void softfloatInit(void) {
     softfloat_roundingMode = softfloat_round_minMag; 
     softfloat_exceptionFlags = 0;
@@ -123,11 +135,122 @@ void genMulTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, 
             for (k=0; k<=sgn; k++) {
                 y.v ^= (k<<15);
                 genCase(fptr, x, y, z, 1, 0, 0, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                if (sgn == 1){
+                    genCase(fptr, x, y, z, 1, 0, 1, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                    }
             }
         }
     }
     fclose(fptr);
 }
+
+void genAddTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, int roundingMode, int zeroAllowed, int infAllowed, int nanAllowed) {
+    int i, j, k, numCases;
+    float16_t x, y, z;
+    float16_t cases[100000];
+    FILE *fptr;
+    char fn[80];
+ 
+    sprintf(fn, "work/%s.tv", testName);
+    if ((fptr = fopen(fn, "w")) == 0) {
+        printf("Error opening to write file %s.  Does directory exist?\n", fn);
+        exit(1);
+    }
+    prepTests(e, f, testName, desc, cases, fptr, &numCases);
+    x.v = 0x3C00;
+    for (i=0; i < numCases; i++) { 
+        x.v = cases[i].v;
+        for (j=0; j<numCases; j++) {
+            z.v = cases[j].v;
+            for (k=0; k<=sgn; k++) {
+                z.v ^= (k<<15);
+                genCase(fptr, x, y, z, 0, 1, 0, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                    if (sgn == 1){
+                    genCase(fptr, x, y, z, 0, 1, 1, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                    }
+
+            }
+        }
+    }
+    fclose(fptr);
+}
+
+void genFMATests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, int roundingMode, int zeroAllowed, int infAllowed, int nanAllowed) {
+    int i, j, k, s, t, numCases;
+    float16_t x, y, z;
+    float16_t cases[100000];
+    FILE *fptr;
+    char fn[80];
+ 
+    sprintf(fn, "work/%s.tv", testName);
+    if ((fptr = fopen(fn, "w")) == 0) {
+        printf("Error opening to write file %s.  Does directory exist?\n", fn);
+        exit(1);
+    }
+    prepTests(e, f, testName, desc, cases, fptr, &numCases);
+    for (i=0; i < numCases; i++) { 
+        x.v = cases[i].v;
+        for (j=0; j<numCases; j++) {
+            y.v = cases[j].v;
+            for (s = 0; s<=sgn; s++){
+                y.v ^= (s<<15);
+                for (t=0; t<numCases; t++) {
+                    z.v = cases[t].v;
+                        for (k=0; k<=sgn; k++) {
+                            z.v ^= (k<<15);
+                            genCase(fptr, x, y, z, 1, 1, 0, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                            if (sgn == 1){
+                                genCase(fptr, x, y, z, 1, 1, 1, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+
+                            }
+                        }
+                }
+            }
+        }
+
+    }
+    fclose(fptr);
+}
+
+void genFMA_SpecialTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, int roundingMode, int zeroAllowed, int infAllowed, int nanAllowed) {
+    int i, j, k, s, t, numCases;
+    float16_t x, y, z;
+    float16_t cases[100000];
+    FILE *fptr;
+    char fn[80];
+ 
+    sprintf(fn, "work/%s.tv", testName);
+    if ((fptr = fopen(fn, "w")) == 0) {
+        printf("Error opening to write file %s.  Does directory exist?\n", fn);
+        exit(1);
+    }
+    prepTests(e, f, testName, desc, cases, fptr, &numCases);
+    for (i=0; i < numCases; i++) { 
+        x.v = cases[i].v;
+        for (j=0; j<numCases; j++) {
+            y.v = cases[j].v;
+            for (s = 0; s<=sgn; s++){
+                y.v ^= (s<<15);
+                for (t=0; t<numCases; t++) {
+                    z.v = cases[t].v;
+                        for (k=0; k<=sgn; k++) {
+                            z.v ^= (k<<15);
+                            genCase(fptr, x, y, z, 1, 1, 0, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                            if (sgn == 1){
+                                genCase(fptr, x, y, z, 1, 1, 1, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+
+                            }
+                        }
+                }
+            }
+        }
+
+    }
+    fclose(fptr);
+}
+
+
+
 
 int main()
 {
@@ -142,6 +265,30 @@ int main()
     genMulTests(easyExponents, easyFracts, 0, "fmul_0_rne", "// Multiply with exponent of 0, significand of 1.0 and 1.1, RNE", 1, 0, 0, 0); */
 
     // Add your cases here
+    
+    //fmul_1
+    genMulTests(fmul1Exponents, fmul1Fracts, 0, "fmul_1", "// Multiply with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
+    
+    //fmul_2
+    genMulTests(fmul2Exponents, fmul2Fracts, 1, "fmul_2", "// With negative sign bit: Multiply with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
   
+    //Addition tests
+    genAddTests(easyExponents, easyFracts, 0, "fadd_0", "// Add with exponent of 0, significand of 1.0 and 1.1, RZ", 0, 0, 0, 0);
+    genAddTests(fmul1Exponents, fmul1Fracts, 0, "fadd_1", "// Add with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
+    genAddTests(fmul2Exponents, fmul2Fracts, 1, "fadd_2", "// With negative sign bit: Add with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
+
+    //FMA Tests
+    genFMA_SpecialTests(easyExponents, easyFracts, 0, "fFMA_0", "// Multiply and Add with exponent of 0, significand of 1.0 and 1.1, RZ", 0, 0, 0, 0);
+    genFMA_SpecialTests(fmul1Exponents, fmul1Fracts, 0, "fFMA_1", "// Multiply and Add with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
+    genFMA_SpecialTests(fmul2Exponents, fmul2Fracts, 1, "fFMA_2", "// With negative sign bit: Multiply and Add with range of positive and negative exponents, significand ranging from smallest to largest, RZ", 0, 0, 0, 0);
+
+    //FMA Special Tests
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_0", "// Multiply and Add with special exponents and fractions, RZ", 1, 1, 1, 1);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_1", "// Multiply and Add with special exponents and fractions, RNE", 2, 1, 1, 1);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_2", "// Multiply and Add with special exponents and fractions, RM", 3, 1, 1, 1);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_3", "// Multiply and Add with special exponents and fractions, RP", 4, 1, 1, 1);
+
+
+    //
     return 0;
 }

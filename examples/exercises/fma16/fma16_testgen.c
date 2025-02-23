@@ -134,8 +134,11 @@ void genMulTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, 
             y.v = cases[j].v;
             for (k=0; k<=sgn; k++) {
                 y.v ^= (k<<15);
+
                 genCase(fptr, x, y, z, 1, 0, k, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
-                
+                genCase(fptr, x, y, z, 0, 1, 0, k, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                genCase(fptr, x, y, z, 0, 1, k, k, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+
             }
         }
     }
@@ -198,6 +201,12 @@ void genFMATests(uint16_t *e, uint16_t *f, int sgn, char *testName, char *desc, 
                             z.v ^= (k<<15);
                             genCase(fptr, x, y, z, 1, 1, k, 0, roundingMode, zeroAllowed, infAllowed, nanAllowed);
 
+                            if (sgn ==1){
+                                genCase(fptr, x, y, z, 1, 1, 0, k, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+                                genCase(fptr, x, y, z, 1, 1, k, k, roundingMode, zeroAllowed, infAllowed, nanAllowed);
+
+                            }
+
                         }
                 }
             }
@@ -219,7 +228,10 @@ void genFMA_SpecialTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char
         printf("Error opening to write file %s.  Does directory exist?\n", fn);
         exit(1);
     }
+    
     prepTests(e, f, testName, desc, cases, fptr, &numCases);
+    z.v = 0x0000;
+
     for (i=0; i < numCases; i++) { 
         x.v = cases[i].v;
         for (j=0; j<numCases; j++) {
@@ -231,7 +243,11 @@ void genFMA_SpecialTests(uint16_t *e, uint16_t *f, int sgn, char *testName, char
                         for (k=0; k<=sgn; k++) {
                             z.v ^= (k<<15);
                             genCase(fptr, x, y, z, 1, 1, k, 0, roundingMode, 1, 1, 1);
-                            
+
+                            if (sgn ==1){
+                                genCase(fptr, x, y, z, 1, 1, 0, k, roundingMode, 1, 1, 1);
+                                genCase(fptr, x, y, z, 1, 1, k, k, roundingMode, 1, 1, 1);
+                            }
                         }
                 }
             }
@@ -277,16 +293,17 @@ int main()
     //FMA Special Tests
 
     //already in rz
-    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_0", "// Multiply and Add with special exponents and fractions, RZ", 1);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_0", "// Multiply and Add with special exponents and fractions, RZ", 0);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 1, "fFMA_Special_0_sign", "// Multiply and Add with special exponents and fractions, RZ", 0);
 
     softfloat_roundingMode = softfloat_round_near_even; 
-    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_1", "// Multiply and Add with special exponents and fractions, RNE", 2);
-
-    softfloat_roundingMode = softfloat_round_min; 
-    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_2", "// Multiply and Add with special exponents and fractions, RN", 3);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 1, "fFMA_Special_1", "// Multiply and Add with special exponents and fractions, RNE", 1);
 
     softfloat_roundingMode = softfloat_round_max; 
-    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 0, "fFMA_Special_3", "// Multiply and Add with special exponents and fractions, RP", 4);
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 1, "fFMA_Special_2", "// Multiply and Add with special exponents and fractions, RP", 2);
+
+    softfloat_roundingMode = softfloat_round_minMag; 
+    genFMA_SpecialTests(fspecialExponents, fspecialFracts, 1, "fFMA_Special_3", "// Multiply and Add with special exponents and fractions, RM", 3);
 
 
     //
